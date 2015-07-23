@@ -99,10 +99,4 @@ if __name__ == '__main__':
 	main()
 	print('--------end!!!-----')
 	print('共抓取:' + str(cnt))
-# try:
-# 	res = opener.open('http://www.baibai.com/', timeout=3)
-# except URLError as e:
-# 	if hasattr(e,'reason'):
-# 		print('Reason:',e.reason)
-# 	elif hasattr(e,'code'):
-# 		print('Error code:',e.code)
+

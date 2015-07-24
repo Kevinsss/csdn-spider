@@ -46,8 +46,8 @@ class CsdnBlogSpider(threading.Thread):
 		while True:
 			url = self.queue.get()
 			self.lock.acquire()
-			print('已经抓去：' + str(cnt) + '正在抓取---->' + url)
 			cnt += 1
+			print('已经抓取：' + str(cnt-1) + '正在抓取---->' + url)
 			self.lock.release()
 			try:
 				res = self.opener.open(url, timeout=1000)
@@ -56,10 +56,13 @@ class CsdnBlogSpider(threading.Thread):
 					print('reason:', e.reason)
 				elif hasattr(e, 'code'):
 					print('error code:', e.code)
+				cnt -= 1
+				self.queue.task_done()
+				continue
 			else:
 				data = res.read()
-				title = self.find_title(data)
-				self.save_data(data,title)
+			title = self.find_title(data)
+			self.save_data(data,title)
 
 			data = data.decode('utf-8')
 			blog_urls = re.compile('/' + self.blog_name + '/article/details/' + '\d*')
@@ -71,14 +74,14 @@ class CsdnBlogSpider(threading.Thread):
 					# print('加入队列---》' + url)
 			self.queue.task_done()
 
-def main():
+def init(name, number=10):
 	global cnt
 	global visited
-	blog_name = input('输入博客名称:')
-	thread_num = input('输入启动线程数:')
-	blog_name = blog_name.lower()
-	th_num = int(thread_num)
-	url = 'http://blog.csdn.net/' + blog_name
+	# blog_name = input('输入博客名称:')
+	# thread_num = input('输入启动线程数:')
+	blog_name = name.lower()
+	th_num = int(number)
+	url = 'http://blog.csdn.net/' + blog_name + '/'
 	opener = urllib.request.build_opener(urllib.request.HTTPHandler)
 	headers = [
 		('User-Agent', 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko')
@@ -95,9 +98,10 @@ def main():
 		t.setDaemon(True)
 		t.start()
 	queue.join()
-
-if __name__ == '__main__':
-	main()
 	print('--------end!!!-----')
 	print('共抓取:' + str(cnt))
+
+if __name__ == '__main__':
+	init()
+
 

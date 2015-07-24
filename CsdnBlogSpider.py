@@ -76,6 +76,7 @@ def main():
 	global visited
 	blog_name = input('输入博客名称:')
 	thread_num = input('输入启动线程数:')
+	blog_name = blog_name.lower()
 	th_num = int(thread_num)
 	url = 'http://blog.csdn.net/' + blog_name
 	opener = urllib.request.build_opener(urllib.request.HTTPHandler)

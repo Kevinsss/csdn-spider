@@ -6,13 +6,17 @@ from tkinter import *
 import tkinter as tk
 import tkinter.messagebox as messagebox
 import tkinter.font
+import threading
+import queue
 
+gui_que = queue.Queue()
 
-class Application():
+class Application(threading.Thread):
 	def __init__(self, root):
 		'''Init frame
 		'''
-		self.progress = 'Downloading.......'
+		threading.Thread.__init__(self)
+		self.progress = ''
 		self.root = root
 		self.createFrame()
 		self.createFrameTop()
@@ -46,9 +50,16 @@ class Application():
 	def download(self):
 		name = self.frm_entry_name.get()
 		self.createFrameBottom()
+		self.progress = 'Downloading, '
 		if name == '':
 			messagebox.showwarning('Warning', 'Blog name can not be empty')
 		else:
+			gui_que.put(name)
+			self.progress += 'please wait...'
+			self.frm_bottom_label.config(text=self.progress)
+	def run(self):
+		while True:
+			name = gui_que.get()
 			CsdnBlogSpider.init(name)
 			tasks = CsdnBlogSpider.queue.unfinished_tasks
 			if tasks == 0:
@@ -59,8 +70,7 @@ class Application():
 			else:
 				messagebox.showinfo('Download Success',
 									'Download ' + str(CsdnBlogSpider.cnt) + ' blogs' + ',saved in ./blog directory!')
-
-
+			gui_que.task_done()
 '''
 make window center
 '''
@@ -80,5 +90,7 @@ if __name__ == '__main__':
 	root = tk.Tk()
 	root.title('Csdn_Blog_Download_Tool')
 	center_window()
-	Application(root)
+	t = Application(root)
+	t.setDaemon(True)
+	t.start()
 	root.mainloop()

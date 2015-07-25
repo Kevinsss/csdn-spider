@@ -37,30 +37,43 @@ class Application(threading.Thread):
 		self.frm_entry_name = tk.Entry(self.frm)
 		self.frm_entry_name.grid(row=0, column=1, padx=5, pady=10)
 
+		self.frm_label_num = tk.Label(self.frm, text='ThreadNum:', font=('Courier New', 11))
+		self.frm_label_num.grid(row=1, column=0, padx=5, pady=10)
+
+		default_value = StringVar()
+		default_value.set('10')
+		self.frm_entry_num = tk.Entry(self.frm, textvariable=default_value)
+		self.frm_entry_num.grid(row=1, column=1, padx=5, pady=10)
+
 		self.frm_button_cancel = tk.Button(self.frm, text='  Cancel  ', command=self.root.quit)
-		self.frm_button_cancel.grid(row=1, column=0, padx=25, pady=10)
+		self.frm_button_cancel.grid(row=2, column=0, padx=25, pady=10)
 
 		self.frm_button_download = tk.Button(self.frm, text='Download', command=self.download)
-		self.frm_button_download.grid(row=1, column=1, padx=5, pady=10)
+		self.frm_button_download.grid(row=2, column=1, padx=5, pady=10)
 
 	def createFrameBottom(self):
 		self.frm_bottom_label = tk.Label(self.root, text=self.progress)
 		self.frm_bottom_label.grid(row=2, column=0)
 
 	def download(self):
-		name = self.frm_entry_name.get()
+		self.name = self.frm_entry_name.get()
+		self.num = self.frm_entry_num.get()
 		self.createFrameBottom()
 		self.progress = 'Downloading, '
-		if name == '':
+		if self.name == '':
 			messagebox.showwarning('Warning', 'Blog name can not be empty')
+		elif not self.num.isdigit():
+			messagebox.showwarning('Warning', 'Thread num is invalid')
+		elif int(self.num) == 0:
+			messagebox.showwarning('Warning', 'Thread num can not be 0')
 		else:
-			gui_que.put(name)
+			gui_que.put(self.name)
 			self.progress += 'please wait...'
 			self.frm_bottom_label.config(text=self.progress)
 	def run(self):
 		while True:
 			name = gui_que.get()
-			CsdnBlogSpider.init(name)
+			CsdnBlogSpider.init(name, int(self.num))
 			tasks = CsdnBlogSpider.queue.unfinished_tasks
 			if tasks == 0:
 				self.progress += "done!!!"
